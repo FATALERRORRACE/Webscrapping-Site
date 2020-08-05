@@ -3,39 +3,29 @@ require("./../config/config.js");
 const express = require("express");
 const app = express();
 const bodyParser = require("body-parser");
+const mongoose = require("mongoose");
 
 // middlewares 
 app.use(bodyParser.urlencoded({extended:false}));
 app.use(bodyParser.json());
 
-//endPoints
-app.get("/usuarios/:id", (req, res)=>{
-  //para declarar valores como parametro de la url se usa :parametro
-  let id = req.params.id;
-  let body = req.body;
-  if(isNaN(id)) res.status(400, "falta id");
-  res.end();
-});
+let connection = async () => {
+  let connection = await mongoose.connect(process.env.URLDB,{
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    useCreateIndex: true
+  });
+  if(connection.Schema.reserved.on) console.log(); 
+  return connection;
+};
 
-app.post("/usuarios", (req, res)=>{
-  res.json("create user screen");
-  res.end();
-});
+app.use(require("./routes/userRoutes.js"));
 
-app.put("/usuarios", (req, res)=>{
-  res.json("change user screen");
-  res.end();
-});
-
-app.delete("/usuarios", (req, res)=>{
-  res.json("delete  user screen");
-  res.end();
-});
-
-
-app.get("/", (req, res)=>{
-   res.write("api working");
-   res.end();
-});
+connection().then((mnsj)=>{
+  if (mnsj) 
+  console.log("database online");
+}).catch((err)=>{
+  if (err) throw err;
+})
 
 app.listen(process.env.PORT, ()=> console.log(`listening ${process.env.PORT}`));
