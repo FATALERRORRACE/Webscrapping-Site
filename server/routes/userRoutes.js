@@ -54,22 +54,15 @@ app.put("/usuarios/:id",async (req, res)=>{
 app.delete("/usuarios/:id", (req, res)=>{
     let id = req.params.id;
     
-    let body = {deleteAt:Date.now(), deleted:true};
-    
     let user = User.deleteById(id,{},(err,delet)=>{
         res.json(delet);
-
     });
-    //User.softDelete(id, (err, user) =>{
-    //    if (err) res.status(400).json({resume:"the user cannot be found or already deleted"});
-    //    res.json({ok:true,user}) 
-    //});
-    
-
+    res.end();
 });
   
 app.get("/", (req, res)=>{
-    User.find({deleted:tr});
+    res.write("welcome to my api :)")    
+    res.end();
 });
 
 // paginación
