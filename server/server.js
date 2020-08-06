@@ -6,6 +6,8 @@ const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 
 // middlewares 
+app.use(require("./routes/index.js"));
+
 app.use(bodyParser.urlencoded({extended:false}));
 app.use(bodyParser.json());
 
@@ -19,7 +21,7 @@ let connection = async () => {
   return connection;
 };
 
-app.use(require("./routes/userRoutes.js"));
+
 
 connection().then((mnsj)=>{
   if (mnsj) 

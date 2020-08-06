@@ -4,10 +4,17 @@ const User = require("../models/userModel")
 const bcrypt = require('bcrypt');
 const underscore = require('underscore');
 const Mongo_delete = require('mongoose-delete');
+const bodyParser = require("body-parser");
 const { object } = require("underscore");
 
+const {verificar_token} = require('../middlewares/auth');
 
-app.get("/usuarios/:id", (req, res)=>{
+app.use(bodyParser.urlencoded());
+app.use(bodyParser.urlencoded({
+    extended: true
+  }));
+
+app.get("/usuarios/:id", verificar_token, (req, res)=>{
     //para declarar valores como parametro de la url se usa :parametro
     let id = req.params.id;
     let body = req.body;
@@ -15,7 +22,9 @@ app.get("/usuarios/:id", (req, res)=>{
     res.end();
 });
   
-app.post("/usuarios", async (req, res)=>{
+app.post("/usuarios", verificar_token, async (req, res)=>{
+    
+    if(req.user.user_role != "admin") res.status(401).json({role: req.user.user_role ,error: "only admin can add users"})
     
     let user = new User({
         name: req.body.name,
@@ -24,7 +33,7 @@ app.post("/usuarios", async (req, res)=>{
         img: req.body.img,
         role: req.body.role,
         state: req.body.state,
-        google: req.body.google,    
+        google: req.body.google,
     });
 
 
@@ -39,7 +48,9 @@ app.post("/usuarios", async (req, res)=>{
     res.end();
 });
   
-app.put("/usuarios/:id",async (req, res)=>{
+app.put("/usuarios/:id", verificar_token, async (req, res)=>{
+
+    if(req.user.user_role != "admin") res.status(401).json({role: req.user.user_role ,error: "only admin can add users"})
 
     let body = req.body; // ACA 
     body = underscore.omit(body,["password","google"]);
@@ -51,7 +62,10 @@ app.put("/usuarios/:id",async (req, res)=>{
     res.end();
 });
   
-app.delete("/usuarios/:id", (req, res)=>{
+app.delete("/usuarios/:id", verificar_token, (req, res)=>{
+    
+    if(req.user.user_role != "admin") res.status(401).json({role: req.user.user_role ,error: "only admin can add users"})
+
     let id = req.params.id;
     
     let user = User.deleteById(id,{},(err,delet)=>{
@@ -66,7 +80,7 @@ app.get("/", (req, res)=>{
 });
 
 // paginación
-app.get("/usuarios", async (req, res)=>{
+app.get("/usuarios", verificar_token, async (req, res)=>{
 
     let result = [];
 
@@ -79,7 +93,7 @@ app.get("/usuarios", async (req, res)=>{
     .exec((err, data)=>{
         if (err) throw err;
       
-            res.json({data, count: Object.keys(data).length });
+            res.json({data, count: Object.keys(data).length ,jwtData:  req.user});
         
     })
  
