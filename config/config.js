@@ -8,6 +8,8 @@ process.env.PORT = process.env.PORT || 3000;
  */
 process.env.NODE_ENV =(process.env.NODE_ENV == "production") ? "production" : "false";
 
+process.env.CLIENT_ID = "556317819298-grurjq52gbfq023ri0i2ahrveomr3b1a.apps.googleusercontent.com";
+
 process.env.TOKENEXPTIME = 60 * 60 * 24 * 30;
 process.env.SEED = "es-un_Secretooo";
 

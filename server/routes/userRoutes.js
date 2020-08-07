@@ -63,7 +63,7 @@ app.put("/usuarios/:id", verificar_token, async (req, res)=>{
 });
   
 app.delete("/usuarios/:id", verificar_token, (req, res)=>{
-    
+
     if(req.user.user_role != "admin") res.status(401).json({role: req.user.user_role ,error: "only admin can add users"})
 
     let id = req.params.id;
@@ -74,10 +74,10 @@ app.delete("/usuarios/:id", verificar_token, (req, res)=>{
     res.end();
 });
   
-app.get("/", (req, res)=>{
+/*app.get("/", (req, res)=>{
     res.write("welcome to my api :)")    
     res.end();
-});
+});*/
 
 // paginación
 app.get("/usuarios", verificar_token, async (req, res)=>{

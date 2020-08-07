@@ -4,12 +4,15 @@ const express = require("express");
 const app = express();
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
+const path = require("path");
 
-// middlewares 
+// middlewares //
 app.use(require("./routes/index.js"));
 
 app.use(bodyParser.urlencoded({extended:false}));
 app.use(bodyParser.json());
+
+app.use( express.static( path.resolve(__dirname , "../public")));
 
 let connection = async () => {
   let connection = await mongoose.connect(process.env.URLDB,{

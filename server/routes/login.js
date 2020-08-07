@@ -3,7 +3,9 @@ const app = express();
 const bcrypt = require('bcrypt');
 const Jwt = require('jsonwebtoken');
 const bodyParser =  require("body-parser");
+const {OAuth2Client} = require('google-auth-library');
 const User = require("../models/userModel")
+const client = new OAuth2Client(process.env.CLIENT_ID);
 
 app.use(bodyParser.urlencoded())
 app.use(bodyParser.urlencoded({
@@ -33,4 +35,23 @@ app.post("/login", (req, res)=>{
     });
 });
 
+app.post("/googlesignin",async(req, res)=>{
+    
+    let token = req.body.token; 
+    const ticket = await client.verifyIdToken({
+        idToken: token,
+        audience: process.env.CLIENT_ID  // Specify the CLIENT_ID of the app that accesses the backend
+        // Or, if multiple clients access the backend:
+        //[CLIENT_ID_1, CLIENT_ID_2, CLIENT_ID_3]
+    });
+    console.log(ticket.getPayload());
+    const payload = ticket.getPayload();
+    const userid = payload['sub'];
+    User.findOne({email:payload.email},(err, userfound)=>{
+        if(err) throw err;
+        if(userfound == null) res.status(404).json({message:"user not registered",error: 404}).end();
+        res.json(userfound);
+        res.end()
+    })
+})
 module.exports = app;
