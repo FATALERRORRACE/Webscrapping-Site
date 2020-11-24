@@ -61,7 +61,10 @@ app.post("/qwe", jsonParser,(req, res)=>{
         };
         
         return items;
-        },data);
+        },data).catch(
+        
+        console.log("err")
+    ) ;
         //outputting the scraped data
         console.log (grabPosts);
         res.json(grabPosts)
@@ -69,7 +72,7 @@ app.post("/qwe", jsonParser,(req, res)=>{
         //closing the browser
     await browser.close();
   }).catch(
-        await browser.close();
+        
         console.log("err")
     ) 
   
