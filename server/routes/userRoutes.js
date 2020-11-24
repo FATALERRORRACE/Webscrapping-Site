@@ -62,7 +62,7 @@ app.get("/qwe", async (req, res)=>{
         //closing the browser
     await browser.close();
   })
-        res.json($result);
+        res.send($result);
 
 res.end();
 });
