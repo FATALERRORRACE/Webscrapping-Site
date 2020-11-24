@@ -9,8 +9,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "axios": "^0.21.0",
     "bcrypt": "^5.0.0",
     "body-parser": "^1.19.0",
+    "cheerio": "^1.0.0-rc.3",
     "express": "^4.17.1",
     "google-auth-library": "^6.0.6",
     "hbs": "^4.1.1",
@@ -19,6 +21,11 @@
     "mongoose-delete": "^0.5.2",
     "mongoose-softdelete": "^1.1.0",
     "mongoose-unique-validator": "^2.0.3",
+    "phantomjs": "^2.1.7",
+    "puppeteer": "^5.5.0",
+    "puppeteer-autoscroll-down": "^0.1.6",
+    "request-promise-native": "^1.0.9",
+    "scrape-it": "^5.2.4",
     "underscore": "^1.10.2"
   },
   "devDependencies": {},
