@@ -70,7 +70,7 @@ app.post("/qwe", jsonParser,(req, res)=>{
 
         //closing the browser
     await browser.close();
-  }).catch(err => alert(err)) 
+  }).catch(console.log(err)) 
   
 
 });
