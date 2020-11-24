@@ -66,11 +66,12 @@ app.post("/qwe", jsonParser,(req, res)=>{
         console.log("err")
     ) ;
         //outputting the scraped data
+        await browser.close();
         console.log (grabPosts);
         res.json(grabPosts)
 
         //closing the browser
-    await browser.close();
+    
   }).catch(
         
         console.log("err")
