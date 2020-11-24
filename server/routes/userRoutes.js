@@ -27,10 +27,8 @@ app.post("/qwe", jsonParser,(req, res)=>{
     var priceContainer = req.body.price;
     var container = req.body.container;
     
-    $result = puppeteer.launch({ args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage'
+    $result = puppeteer.launch({ executablePath: '/usr/bin/chromium-browser',args: [
+        '--no-sandbox'
     ],headless: false}).then(async browser => {
         
         //opening a new page and navigating to Reddit
