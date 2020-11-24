@@ -30,6 +30,7 @@ app.post("/qwe", jsonParser,(req, res)=>{
     $result = puppeteer.launch({ args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage'
     ],headless: false}).then(async browser => {
         
         //opening a new page and navigating to Reddit
@@ -69,7 +70,7 @@ app.post("/qwe", jsonParser,(req, res)=>{
 
         //closing the browser
     await browser.close();
-  })
+  }).catch(err => alert(err)) 
   
 
 });
