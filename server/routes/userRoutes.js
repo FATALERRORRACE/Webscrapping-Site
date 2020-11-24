@@ -18,34 +18,39 @@ app.use(bodyParser.urlencoded());
 app.use(bodyParser.urlencoded({
     extended: true
   }));
+  var jsonParser = bodyParser.json()
 
+app.post("/qwe", jsonParser,(req, res)=>{
 
-app.get("/qwe", async (req, res)=>{
+    var url = req.body.url;
+    var descriptionContainer = req.body.description;
+    var priceContainer = req.body.price;
+    var container = req.body.container;
     
-    let url = req.query.url;
-    let descriptionContainer = req.query.description;
-    let priceContainer = req.query.price;
     $result = puppeteer.launch({ args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
     ],headless: false}).then(async browser => {
-  
+        
         //opening a new page and navigating to Reddit
         const page = await browser.newPage ();
         await page.goto (url, {waitUntil: 'load'});
-        await page.waitForSelector ('.df-card');
-
-        //manipulating the page's content
-        let grabPosts = await page.evaluate (() => {
-        let allPosts = document.body.querySelectorAll (descriptionContainer);
+        await page.waitForSelector ('.df-results');
         
+        priceContainer =  req.body.price;
+        descriptionContainer = req.body.description;
+        container = req.body.container;
+        var data = {"desc":descriptionContainer,"price":priceContainer, "container" : container };
+        //manipulating the page's content
+        let grabPosts = await page.evaluate (data => {
+        let allPosts = document.body.querySelectorAll(data.container);
         //storing the post items in an array then selecting for retrieving content
         scrapeItems = [];
         allPosts.forEach (item => {
-        let postTitle = item.querySelector (descriptionContainer).innerText;
+        let postTitle = item.querySelector(data.desc).innerText;
         let postDescription = '';
             try {
-            postDescription = item.querySelector (priceContainer).innerText;
+            postDescription = item.querySelector(data.price).innerText;
             } catch (err) {}
             scrapeItems.push ({
             postTitle: postTitle,
@@ -55,16 +60,18 @@ app.get("/qwe", async (req, res)=>{
         let items = {
             "Info": scrapeItems,
         };
+        
         return items;
-        });
+        },data);
         //outputting the scraped data
         console.log (grabPosts);
+        res.json(grabPosts)
+
         //closing the browser
     await browser.close();
   })
-        res.send($result);
+  
 
-res.end();
 });
 
 
