@@ -1,0 +1,81 @@
+const puppeteer = require ('puppeteer');
+const axios = require('axios');
+const cheerio = require('cheerio');
+const express = require("express");
+
+
+const app = express();
+const User = require("../models/userModel")
+const bcrypt = require('bcrypt');
+const underscore = require('underscore');
+const Mongo_delete = require('mongoose-delete');
+const bodyParser = require("body-parser");
+const { object } = require("underscore");
+
+const {verificar_token} = require('../middlewares/auth');
+
+app.use(bodyParser.urlencoded());
+app.use(bodyParser.urlencoded({
+    extended: true
+  }));
+  var jsonParser = bodyParser.json()
+
+app.post("/qwe", jsonParser,(req, res)=>{
+console.log(req.body)
+    var url = req.body.url;
+    var descriptionContainer = req.body.description;
+    var priceContainer = req.body.price;
+    var container = req.body.container;
+    
+await page.setDefaultNavigationTimeout(60000);    $result = puppeteer.launch({ executablePath: '/usr/bin/chromium-browser',args: [
+        '--no-sandbox',"--disable-setuid-sandbox"
+    ],headless: true}).then(async browser => {
+        
+        //opening a new page and navigating to Reddit
+        const page = await browser.newPage ();
+        await page.goto (url, {waitUntil: 'load'});
+        await page.waitForSelector ('.df-results');
+        
+        priceContainer =  req.body.price;
+        descriptionContainer = req.body.description;
+        container = req.body.container;
+        var data = {"desc":descriptionContainer,"price":priceContainer, "container" : container };
+        //manipulating the page's content
+        let grabPosts = await page.evaluate (data => {
+        let allPosts = document.body.querySelectorAll(data.container);
+        //storing the post items in an array then selecting for retrieving content
+        scrapeItems = [];
+        allPosts.forEach (item => {
+        let postTitle = item.querySelector(data.desc).innerText;
+        let postDescription = '';
+            try {
+            postDescription = item.querySelector(data.price).innerText;
+            } catch (err) {}
+            scrapeItems.push ({
+            postTitle: postTitle,
+            postDescription: postDescription,
+            });
+        });
+        let items = {
+            "Info": scrapeItems,
+        };
+        
+        return items;
+        },data)
+        //outputting the scraped data
+        await browser.close();
+        console.log (grabPosts);
+        res.json(grabPosts)
+
+        //closing the browser
+    
+  }).catch(
+        
+        console.log("err")
+    ) 
+  
+
+});
+
+
+module.exports = app;
