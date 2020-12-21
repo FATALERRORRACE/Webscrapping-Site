@@ -172,7 +172,64 @@ app.post("/laeconomia/scrapping", jsonParser, (req, res)=>{
     )
 
 });
+app.post("/takescreenshot", jsonParser, (req, res)=>{
 
+    let url = req.body.url;
+    //let path_to_save = req.body.path;
+    let fileName = req.body.fileName;
+    var token = "";
+
+    // ------------ get token 
+    // http://drovancal.waplicaciones.co//login_check
+    axios.post('http://drovancal.waplicaciones.co/api/login_check', {
+    username: "1032358719",
+    password: "a"
+  })
+  .then(res => {
+    console.log(`statusCode: ${res.statusCode}`)
+    console.log(res.data.token)
+    token = res.data.token;
+  })
+  .catch(error => {
+    console.error(error)
+  })
+    // ------------ end get token 
+    $result = puppeteer.launch({ executablePath: '/usr/bin/chromium-browser',args: [
+        '--no-sandbox'
+    ],headless: true}).then(async browser => {
+        
+        //opening a new page and navigating to Reddit   
+        const page = await browser.newPage ();
+
+        page.setExtraHTTPHeaders({
+            'Authorization': "Bearer "+token,
+        });
+        await page.goto ("http://drovancal.waplicaciones.co/api/rutas_puntos?origin=api&idRuta=21", { waitUntil: "domcontentloaded" ,  timeout: 0});
+        await page.waitForSelector (".gm-style-pbt").then(() => {
+        }).catch(e => {
+            return 'BUSQUEDA SIN RESULTADOS';
+        });
+        //await delay(4000);
+        let response = await page.screenshot({
+            //path: path_to_save+name,
+            type:"jpeg",
+            clip:{
+                x:10,
+                y:120,
+                width:370,
+                height: 460
+            },
+            encoding: "base64"
+        }).then((string, buffer)=>{
+            console.log(string);
+            return string;
+        })
+        res.send(response);
+        await browser.close();
+
+    }).catch(
+    ) 
+});
 function delay(time) {
     return new Promise(function(resolve) { 
         setTimeout(resolve, time)
