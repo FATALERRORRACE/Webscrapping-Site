@@ -181,7 +181,8 @@ app.post("/takescreenshot", jsonParser, (req, res)=>{
 
     // ------------ get token 
     // http://drovancal.waplicaciones.co//login_check
-    axios.post('http://drovancal.waplicaciones.co/api/login_check', {
+    axios
+  .post('http://drovancal.waplicaciones.co/api/login_check', {
     username: "1032358719",
     password: "a"
   })
@@ -193,23 +194,20 @@ app.post("/takescreenshot", jsonParser, (req, res)=>{
   .catch(error => {
     console.error(error)
   })
-    // ------------ end get token 
     $result = puppeteer.launch({ executablePath: '/usr/bin/chromium-browser',args: [
         '--no-sandbox'
     ],headless: true}).then(async browser => {
-        
-        //opening a new page and navigating to Reddit   
         const page = await browser.newPage ();
 
         page.setExtraHTTPHeaders({
             'Authorization': "Bearer "+token,
         });
-        await page.goto ("http://drovancal.waplicaciones.co/api/rutas_puntos?origin=api&idRuta=21", { waitUntil: "domcontentloaded" ,  timeout: 0});
+        await page.goto ("http://drovancal-p.waplicaciones.co/api/rutas_puntos?origin=api&idRuta=21", { waitUntil: "domcontentloaded" ,  timeout: 0});
         await page.waitForSelector (".gm-style-pbt").then(() => {
         }).catch(e => {
             return 'BUSQUEDA SIN RESULTADOS';
         });
-        //await delay(4000);
+        await delay(4000);
         let response = await page.screenshot({
             //path: path_to_save+name,
             type:"jpeg",
