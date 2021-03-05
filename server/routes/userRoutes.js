@@ -91,6 +91,89 @@ app.post("/scrapme", jsonParser, (req, res)=>{
 
 });
 
+
+app.post("/exito/scrapping", jsonParser, (req, res)=>{
+
+    var url = req.body.url;
+    console.log("se busca en"+url);
+    var descriptionContainer = req.body.description;
+    var priceContainer = req.body.price;
+    var priceU = req.body.Uprice ? req.body.Uprice : req.body.description ;
+    var container = req.body.container;
+    priceContainer =  req.body.price;
+    descriptionContainer = req.body.description;
+    priceU = req.body.Uprice !== "" ? req.body.Uprice : req.body.description ;
+    container = req.body.container;
+    var data = { "desc":descriptionContainer , "price":priceContainer , "container":container , "priceU":priceU };
+  
+    $result = puppeteer.launch({args: [
+        '--no-sandbox'
+    ],headless: true }).then(async browser => {
+
+        const page = await browser.newPage ();
+        await page.goto(url, {  waitUntil: 'networkidle0',  timeout: 600000});
+
+        await page.waitForSelector(".exito-geolocation-3-x-modalContainer").then(async () => {   
+
+            await page.$eval(".exito-autocomplete-3", elem => elem.click());
+            await page.click(".exito-autocomplete-3");
+            await page.waitFor(1000);
+
+            await page.keyboard.press(String.fromCharCode(13));
+            await page.keyboard.press('Enter');
+                        
+            await page.$eval(".exito-geolocation-3-x-primaryButton", elem => elem.click());
+            await page.click(".exito-geolocation-3-x-primaryButton");
+
+
+        }).catch(e => {});
+
+        await page.waitForSelector(container).then(() => {   
+
+        }).catch(e => { });
+
+        //await page.waitForSelector (container);
+        
+        
+         //manipulating the page's content
+            
+        var grabPosts = await page.evaluate ( data => {
+            let allPosts = document.body.querySelectorAll(data.container);
+            //storing the post items in an array then selecting for retrieving content
+            scrapeItems = [];
+            allPosts.forEach (item => {
+
+                let postTitle = "";
+                let postDescription = '';
+                let priceUnit = "";
+
+                postTitle = item.querySelector(data.desc).innerText;
+                postDescription = item.querySelector(data.price).innerText;
+                priceUnit = item.querySelector(data.priceU).innerText;
+                
+                scrapeItems.push ({
+                descripcion: postTitle,
+                precio: postDescription,
+                precioU: priceUnit
+                });
+            });
+            let items = {
+                0: scrapeItems,
+            };
+
+            return items;
+        },data)
+        console.log(grabPosts);
+    
+        //outputting the scraped data
+        await browser.close();
+        res.json(grabPosts)
+
+  }).catch(
+    )
+
+}); 
+
 app.post("/laeconomia/scrapping", jsonParser, (req, res)=>{
 
     var url = req.body.url;
@@ -99,12 +182,10 @@ app.post("/laeconomia/scrapping", jsonParser, (req, res)=>{
     var priceContainer = req.body.price;
     var priceU = req.body.Uprice ? req.body.Uprice : req.body.description ;
     var container = req.body.container;
-        
     $result = puppeteer.launch({args: [
         '--no-sandbox'
     ],headless: true}).then(async browser => {
 
-        //opening a new page and navigating to Reddit  77 
         const page = await browser.newPage ();
         await page.goto (url, { waitUntil: 'load',  timeout: 600000});
         await page.waitForSelector(".modal-body").then(async () => {
@@ -122,11 +203,9 @@ app.post("/laeconomia/scrapping", jsonParser, (req, res)=>{
         priceU = req.body.Uprice !== "" ? req.body.Uprice : req.body.description ;
         container = req.body.container;
         var data = { "desc":descriptionContainer , "price":priceContainer , "container":container , "priceU":priceU };
-        console.log(data)
         //manipulating the page's content
-        try {
             
-        var grabPosts = await page.evaluate (data => {
+        var grabPosts = await page.evaluate ( data => {
             let allPosts = document.body.querySelectorAll(data.container);
             //storing the post items in an array then selecting for retrieving content
             scrapeItems = [];
@@ -157,13 +236,11 @@ app.post("/laeconomia/scrapping", jsonParser, (req, res)=>{
         }).catch(e => {
             return 'BUSQUEDA SIN RESULTADOS';
         });
-    } catch (error) {
-        await browser.close();
-        return "BUSQUEDA SIN RESULTADOS";
-    }
+    
         //outputting the scraped data
         await browser.close();
         res.json(grabPosts)
+        await browser.close();
 
         //closing the browser
 
@@ -228,6 +305,91 @@ app.post("/takescreenshot", jsonParser, (req, res)=>{
     }).catch(
     ) 
 });
+
+app.post("/test/scrapme", jsonParser, (req, res)=>{
+
+    var url = req.body.url;
+    console.log("se busca en"+url);
+    var descriptionContainer = req.body.description;
+    var priceContainer = req.body.price;
+    var priceU = req.body.Uprice ? req.body.Uprice : req.body.description ;
+    var container = req.body.container;
+    $result = puppeteer.launch({ executablePath: '/usr/bin/chromium-browser',args: [
+        '--no-sandbox'
+    ],headless: true}).then(async browser => {
+        
+        //opening a new page and navigating to Reddit
+        const page = await browser.newPage ();
+        await page.goto (url, { waitUntil: "domcontentloaded" ,  timeout: 0});
+        
+        await page.waitForSelector ("impulse-search").then(() => {
+            //console.log(document.body.querySelectorAll("impulse-search")[0].shadowRoot.getElementById("products"));
+        }).catch(e => {
+            console.log(e)
+            return 'BUSQUEDA SIN RESULTADOS';
+        });
+    
+        priceContainer =  req.body.price;
+        descriptionContainer = req.body.description;
+        priceU = req.body.Uprice !== "" ? req.body.Uprice : req.body.description ;
+        container = req.body.container;
+        var data = { "desc":descriptionContainer , "price":priceContainer , "container":container , "priceU":priceU };
+        //manipulating the page's content
+                
+        const textContent = await page.evaluate(() => {
+            return document.querySelector('impulse-search')[0].shadowRoot.getElementById("products");
+        });
+        console.log(textContent);
+        let grabPosts = await page.evaluate (data => {
+            console.log(document.querySelectorAll("impulse-search"));
+            return document.querySelectorAll("impulse-search");
+
+        let allPosts = document.body.querySelectorAll(data.container);
+        //storing the post items in an array then selecting for retrieving content
+        scrapeItems = [];
+        allPosts.forEach (item => {
+
+        let postTitle = "";
+        let postDescription = '';
+        let priceUnit = "";
+        try {
+            postTitle = item.querySelector(data.desc).innerText;
+            postDescription = item.querySelector(data.price).innerText;
+            priceUnit = item.querySelector(data.priceU).innerText;
+
+        } catch (err) {
+            
+        }
+
+
+            scrapeItems.push ({
+            descripcion: postTitle,
+            precio: postDescription,
+            precioU: priceUnit
+            });
+        });
+        let items = {
+            0: scrapeItems,
+        };
+        
+        return items;
+        },data)
+        //outputting the scraped data
+        await browser.close();
+        console.log (grabPosts);
+        res.json(grabPosts)
+
+        //closing the browser
+    
+  }).catch(
+        
+        console.log("err")
+    ) 
+  
+
+});
+
+
 function delay(time) {
     return new Promise(function(resolve) { 
         setTimeout(resolve, time)
