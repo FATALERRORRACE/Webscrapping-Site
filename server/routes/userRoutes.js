@@ -117,7 +117,7 @@ app.post("/exito/scrapping", jsonParser, (req, res)=>{
 
             await page.$eval(".exito-autocomplete-3", elem => elem.click());
             await page.click(".exito-autocomplete-3");
-            await page.waitFor(1000);
+            await page.waitForTimer(1000);
 
             await page.keyboard.press(String.fromCharCode(13));
             await page.keyboard.press('Enter');
@@ -146,16 +146,19 @@ app.post("/exito/scrapping", jsonParser, (req, res)=>{
                 let postTitle = "";
                 let postDescription = '';
                 let priceUnit = "";
-
-                postTitle = item.querySelector(data.desc).innerText;
-                postDescription = item.querySelector(data.price).innerText;
-                priceUnit = item.querySelector(data.priceU).innerText;
+                try {
+                    postTitle = item.querySelector(data.desc).innerText;
+                    postDescription = item.querySelector(data.price).innerText;
+                    priceUnit = item.querySelector(data.priceU).innerText;
+                    scrapeItems.push ({
+                        descripcion: postTitle,
+                        precio: postDescription,
+                        precioU: priceUnit
+                    });
+                } catch (error) {
+                }
                 
-                scrapeItems.push ({
-                descripcion: postTitle,
-                precio: postDescription,
-                precioU: priceUnit
-                });
+               
             });
             let items = {
                 0: scrapeItems,
@@ -210,7 +213,7 @@ app.post("/laeconomia/scrapping", jsonParser, (req, res)=>{
             //storing the post items in an array then selecting for retrieving content
             scrapeItems = [];
             allPosts.forEach (item => {
-                console.log(data.desc)
+
                 let postTitle = "";
                 let postDescription = '';
                 let priceUnit = "";
@@ -218,14 +221,15 @@ app.post("/laeconomia/scrapping", jsonParser, (req, res)=>{
                     postTitle = item.querySelector(data.desc).getAttribute("title");
                     postDescription = item.querySelector(data.price).innerText;
                     priceUnit = item.querySelector(data.priceU).innerText;
-
+                    
+                    scrapeItems.push ({
+                        descripcion: postTitle,
+                        precio: postDescription,
+                        precioU: priceUnit
+                        });
                 } catch (err) {}
 
-                scrapeItems.push ({
-                descripcion: postTitle,
-                precio: postDescription,
-                precioU: priceUnit
-                });
+              
             });
             let items = {
                 0: scrapeItems,
