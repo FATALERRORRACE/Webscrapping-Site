@@ -2,6 +2,7 @@ const puppeteer = require ('puppeteer');
 const axios = require('axios');
 const cheerio = require('cheerio');
 const express = require("express");
+const parsingHelper = require('../helpers/parsing-helper');
 
 
 const app = express();
@@ -20,76 +21,52 @@ app.use(bodyParser.urlencoded({
   }));
   var jsonParser = bodyParser.json()
 
-app.post("/scrapme", jsonParser, (req, res)=>{
-
-    var url = req.body.url;
-    console.log("se busca en"+url);
-    var descriptionContainer = req.body.description;
-    var priceContainer = req.body.price;
-    var priceU = req.body.Uprice ? req.body.Uprice : req.body.description ;
-    var container = req.body.container;
-    $result = puppeteer.launch({ executablePath: '/usr/bin/chromium-browser',args: [
-        '--no-sandbox'
-    ],headless: true}).then(async browser => {
-        
-        //opening a new page and navigating to Reddit
-        const page = await browser.newPage ();
-        await page.goto (url, { waitUntil: 'load',  timeout: 0});
-        await page.waitForSelector (container).then(() => {
-           
-        }).catch(e => {
-            return 'BUSQUEDA SIN RESULTADOS';
-        });
-    
-        priceContainer =  req.body.price;
-        descriptionContainer = req.body.description;
-        priceU = req.body.Uprice !== "" ? req.body.Uprice : req.body.description ;
-        container = req.body.container;
-        var data = { "desc":descriptionContainer , "price":priceContainer , "container":container , "priceU":priceU };
-        //manipulating the page's content
-        let grabPosts = await page.evaluate (data => {
-        let allPosts = document.body.querySelectorAll(data.container);
-        //storing the post items in an array then selecting for retrieving content
-        scrapeItems = [];
-        allPosts.forEach (item => {
-
-        let postTitle = "";
-        let postDescription = '';
-        let priceUnit = "";
-        try {
-            postTitle = item.querySelector(data.desc).innerText;
-            postDescription = item.querySelector(data.price).innerText;
-            priceUnit = item.querySelector(data.priceU).innerText;
-
-        } catch (err) {}
-
-
-            scrapeItems.push ({
-            descripcion: postTitle,
-            precio: postDescription,
-            precioU: priceUnit
-            });
-        });
-        let items = {
-            0: scrapeItems,
-        };
-        
-        return items;
-        },data)
-        //outputting the scraped data
-        await browser.close();
-        console.log (grabPosts);
-        res.json(grabPosts)
-
-        //closing the browser
-    
-  }).catch(
-        
-        console.log("err")
-    ) 
+  app.post('/scrapme', jsonParser, async (req, res) => {
+    const { url, container, shadowDomSelector } = req.body;
+    const priceU = req.body.Uprice || req.body.description;
   
-
-});
+    console.log(`se busca en ${url}`);
+  
+    const browser = await puppeteer.launch({
+      args: ['--no-sandbox'],
+      headless: true,
+    });
+    const page = await browser.newPage();
+    await page.goto(url, { waitUntil: 'load', timeout: 0 });
+    await page.waitForSelector(shadowDomSelector || container);
+  
+    const domProductList = await parsingHelper.detectProductListContainer(page, {
+      containerSelector: container,
+      shadowDomSelector,
+    });
+    const extractText = (element) => element.innerText;
+    const mapToProductField = async (item) => {
+      try {
+        const titulo = await item.$eval(req.body.description, extractText);
+        const precio = await item.$eval(req.body.price, extractText);
+        const precioUnitario = await item.$eval(priceU, extractText);
+  
+        return {
+          descripcion: titulo,
+          precio,
+          precioU: precioUnitario,
+        };
+      } catch (err) {
+        console.log(
+          'not possible to detect product information. Current this: %o, error: %o',
+          this,
+          err
+        );
+      }
+  
+      return {};
+    };
+  
+    const scrapeItems = await Promise.all(domProductList.map(mapToProductField));
+  
+    await browser.close();
+    res.json(scrapeItems);
+  });
 
 
 app.post("/exito/scrapping", jsonParser, (req, res)=>{
