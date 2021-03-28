@@ -48,8 +48,8 @@ app.use(bodyParser.urlencoded({
   
         return {
           descripcion: titulo,
-          precio,
-          precioU: precioUnitario,
+          precio: precio.replace(/[^0-9]/gi, ''),
+          precioU: precioUnitario.replace(/[^0-9]/gi, ''),
         };
       } catch (err) {
         console.log(
@@ -252,7 +252,7 @@ app.post("/takescreenshot", jsonParser, (req, res)=>{
   .catch(error => {
     console.error(error)
   })
-    $result = puppeteer.launch({ executablePath: '/usr/bin/chromium-browser',args: [
+    $result = puppeteer.launch({ args: [
         '--no-sandbox'
     ],headless: true}).then(async browser => {
         const page = await browser.newPage ();
@@ -295,7 +295,7 @@ app.post("/test/scrapme", jsonParser, (req, res)=>{
     var priceContainer = req.body.price;
     var priceU = req.body.Uprice ? req.body.Uprice : req.body.description ;
     var container = req.body.container;
-    $result = puppeteer.launch({ executablePath: '/usr/bin/chromium-browser',args: [
+    $result = puppeteer.launch({ args: [
         '--no-sandbox'
     ],headless: true}).then(async browser => {
         
